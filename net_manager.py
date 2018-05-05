@@ -1,8 +1,20 @@
 import tensorflow as tf
 from cnn import CNN
+import numpy as np
+
+def next_batch(num, data, labels):
+    '''
+    Return a total of `num` random samples and labels. 
+    '''
+    idx = np.arange(0 , len(data))
+    np.random.shuffle(idx)
+    idx = idx[:num]
+    data_shuffle = [np.asarray(data[i]).flatten() for i in idx] 
+    labels_shuffle = [np.eye(10, dtype=int)[labels[i][0]] for i in idx]
+    return np.asarray(data_shuffle), np.asarray(labels_shuffle)
 
 class NetManager():
-    def __init__(self, num_input, num_classes, learning_rate, mnist,
+    def __init__(self, num_input, num_classes, learning_rate, cifar10,
                  max_step_per_action=5500*3,
                  bathc_size=100,
                  dropout_rate=0.85):
@@ -10,7 +22,7 @@ class NetManager():
         self.num_input = num_input
         self.num_classes = num_classes
         self.learning_rate = learning_rate
-        self.mnist = mnist
+        self.cifar10 = cifar10
 
         self.max_step_per_action = max_step_per_action
         self.bathc_size = bathc_size
@@ -31,7 +43,7 @@ class NetManager():
                     train_sess.run(init)
 
                     for step in range(self.max_step_per_action):
-                        batch_x, batch_y = self.mnist.train.next_batch(self.bathc_size)
+                        batch_x, batch_y = next_batch(self.bathc_size, self.cifar10["x_train"], self.cifar10["y_train"])                        
                         feed = {model.X: batch_x,
                                 model.Y: batch_y,
                                 model.dropout_keep_prob: self.dropout_rate,
@@ -49,7 +61,7 @@ class NetManager():
                             print("Step " + str(step) +
                                   ", Minibatch Loss= " + "{:.4f}".format(loss) +
                                   ", Current accuracy= " + "{:.3f}".format(acc))
-                    batch_x, batch_y = self.mnist.test.next_batch(10000)
+                    batch_x, batch_y = next_batch(10000, self.cifar10["x_test"], self.cifar10["y_test"])
                     loss, acc = train_sess.run(
                                 [loss_op, model.accuracy],
                                 feed_dict={model.X: batch_x,
