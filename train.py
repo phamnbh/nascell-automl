@@ -8,8 +8,8 @@ from net_manager import NetManager
 from reinforce import Reinforce
 
 from tensorflow.examples.tutorials.mnist import input_data
-import keras
-from keras.datasets import cifar10
+import tensorflow.python.keras
+from tensorflow.python.keras.datasets import cifar10
 
 
 def parse_args():
