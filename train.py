@@ -10,6 +10,13 @@ from reinforce import Reinforce
 from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow.python.keras
 from tensorflow.python.keras.datasets import cifar10
+from NAS_CEPTION import modifiedLSTM
+
+cell_type = dict(NASCell=tf.contrib.rnn.NASCell,
+                 RNNCell=tf.contrib.rnn.RNNCell,
+                 LSTMCell=tf.contrib.rnn.LSTMCell,
+                 BasicNeatCell=modifiedLSTM.BasicNeatCell,
+                 AdvancedNeatCell=modifiedLSTM.AdvancedNeatCell)
 
 
 def parse_args():
@@ -17,9 +24,14 @@ def parse_args():
     parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument('--max_layers', default=2)
+    parser.add_argument('--cell_type', default='NASCell')
 
+    global args
     args = parser.parse_args()
     args.max_layers = int(args.max_layers)
+    args.cell_type = cell_type[args.cell_type]
+    print('Cell being used is ', args.cell_type)
+
     return args
 
 
@@ -35,17 +47,18 @@ def parse_args():
         3-D tensor with new state (new topology)
 '''
 def policy_network(state, max_layers):
+    global args
     with tf.name_scope("policy_network"):
-        nas_cell = tf.contrib.rnn.NASCell(4*max_layers)
+        cell = args.cell_type(4*max_layers)
         outputs, state = tf.nn.dynamic_rnn(
-            nas_cell,
+            cell,
             tf.expand_dims(state, -1),
             dtype=tf.float32
         )
         bias = tf.Variable([0.05]*4*max_layers)
         outputs = tf.nn.bias_add(outputs, bias)
         print("outputs: ", outputs, outputs[:, -1:, :],  tf.slice(outputs, [0, 4*max_layers-1, 0], [1, 1, 4*max_layers]))
-        #return tf.slice(outputs, [0, 4*max_layers-1, 0], [1, 1, 4*max_layers]) # Returned last output of rnn
+        # return tf.slice(outputs, [0, 4*max_layers-1, 0], [1, 1, 4*max_layers]) # Returned last output of rnn
         return outputs[:, -1:, :]      
 
 def train(cifar10):
