@@ -10,13 +10,19 @@ from reinforce import Reinforce
 from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow.python.keras
 from tensorflow.python.keras.datasets import cifar10
-from NAS_CEPTION import modifiedLSTM
-
-cell_type = dict(NASCell=tf.contrib.rnn.NASCell,
-                 RNNCell=tf.contrib.rnn.RNNCell,
-                 LSTMCell=tf.contrib.rnn.LSTMCell,
-                 BasicNeatCell=modifiedLSTM.BasicNeatCell,
-                 AdvancedNeatCell=modifiedLSTM.AdvancedNeatCell)
+import os
+if os.path.isdir('NAS_CEPTION/'):
+    from NAS_CEPTION import modifiedLSTM
+    cell_type = dict(NASCell=tf.contrib.rnn.NASCell,
+                     RNNCell=tf.contrib.rnn.RNNCell,
+                     LSTMCell=tf.contrib.rnn.LSTMCell,
+                     BasicNeatCell=modifiedLSTM.BasicNeatCell,
+                     AdvancedNeatCell=modifiedLSTM.AdvancedNeatCell)
+else:
+    print('The git submodule "NAS_CEPTION is not loaded in '
+          'please use the command'
+          '\n"git submodule update --init -- ./NAS_CEPTION"\n'
+          'to load it in, and run this script again.')
 
 
 def parse_args():
