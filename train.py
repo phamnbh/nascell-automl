@@ -67,7 +67,7 @@ def policy_network(state, max_layers):
         # return tf.slice(outputs, [0, 4*max_layers-1, 0], [1, 1, 4*max_layers]) # Returned last output of rnn
         return outputs[:, -1:, :]      
 
-def train(cifar10):
+def train(mnist):
     global args
     sess = tf.Session()
     global_step = tf.Variable(0, trainable=False)
@@ -78,10 +78,10 @@ def train(cifar10):
     optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate)
 
     reinforce = Reinforce(sess, optimizer, policy_network, args.max_layers, global_step)
-    net_manager = NetManager(num_input=3072,
+    net_manager = NetManager(num_input=784,
                              num_classes=10,
                              learning_rate=0.001,
-                             cifar10=cifar10,
+                             mnist=mnist,
                              bathc_size=100)
 
     MAX_EPISODES = 2500
@@ -115,10 +115,8 @@ def main():
     global args
     args = parse_args()
 
-    (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-    c10 = {"x_train": x_train, "y_train":y_train, "x_test":x_test, "y_test":y_test}
-
-    train(c10)
+    mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+    train(mnist)
 
 if __name__ == '__main__':
   main()
